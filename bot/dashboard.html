@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tomorn 🐼 บ้านบอทเทรดของแพนด้าโตมร</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #eaf4ff; --surface-1: #ffffff; --surface-2: #f2f8ff;
+    --text-primary: #23304f; --text-secondary: #56637f; --text-muted: #8a97b2; --grid: #e3edf9;
+    --primary: #2e86de; --sky: #8cc8ff; --yellow: #ffe28a; --pink: #ffb3cf; --mint: #9be3c6;
+    --yellow-bg: #fff7d9; --pink-bg: #ffeaf2; --mint-bg: #e3f8ee; --sky-bg: #e4f1ff;
+    --series-1: #2e86de; --series-2: #ff9f43;
+    --good: #22b07d; --good-text: #12865c; --critical: #ff6b6b; --critical-text: #d63c3c; --warning: #ffb627;
+    --up: #2bb673; --down: #ff6b6b;
+    --radius: 28px;
+    --bubble: 0 12px 32px rgba(46, 134, 222, .13), 0 2px 6px rgba(35, 48, 79, .05);
+    --bubble-hover: 0 18px 40px rgba(46, 134, 222, .2), 0 3px 8px rgba(35, 48, 79, .06);
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0; color: var(--text-primary); min-height: 100vh;
+    font: 15px/1.6 "Sarabun", -apple-system, "Sukhumvit Set", "Noto Sans Thai", sans-serif;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #d3e9ff 0%, transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, #ffe9f3 0%, transparent 55%),
+      radial-gradient(900px 600px at 50% 120%, #e1f7ec 0%, transparent 60%),
+      #eef6ff;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, .value, .chip, .bubble, .tip .t, .logo small, th { font-family: "Kanit", "Sukhumvit Set", sans-serif; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 18px 160px; position: relative; z-index: 1; }
+
+  /* ดาวกับเหรียญลอย ๆ */
+  .doodles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .doodles svg { position: absolute; animation: float 8s ease-in-out infinite; opacity: .9; }
+  @keyframes float { 0%,100% { transform: translateY(0) rotate(-8deg); } 50% { transform: translateY(-14px) rotate(8deg); } }
+
+  header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-mark { width: 62px; height: 62px; border-radius: 22px; background: #fff; box-shadow: var(--bubble);
+    display: grid; place-items: center; transform: rotate(-5deg); transition: transform .3s; }
+  .logo:hover .logo-mark { transform: rotate(4deg) scale(1.05); }
+  .logo h1 { margin: 0; font-size: 32px; font-weight: 600; line-height: 1.05; color: var(--primary); letter-spacing: .01em; }
+  .logo h1 span { color: #ff8fb8; }
+  .logo small { display: block; color: var(--text-secondary); font-size: 14px; font-weight: 300; }
+  .chip { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: 99px; background: #fff;
+    font-size: 13.5px; color: var(--text-secondary); box-shadow: var(--bubble); font-weight: 300; }
+  .chip b { color: var(--text-primary); font-weight: 500; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--text-muted); }
+  .dot.on { background: #3ccf91; animation: pulse 1.8s ease-in-out infinite; }
+  .dot.off { background: var(--critical); }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(60,207,145,.22); } }
+  .spacer { flex: 1; }
+  .tabs { display: inline-flex; gap: 6px; padding: 6px; border-radius: 99px; background: #fff; box-shadow: var(--bubble); margin: -4px 0 18px; }
+  .tabs button { font: 500 15px "Kanit", sans-serif; border: 0; background: transparent; color: var(--text-secondary); padding: 8px 18px;
+    border-radius: 99px; cursor: pointer; transition: background .2s, color .2s; display: inline-flex; gap: 7px; align-items: center; }
+  .tabs button small { font: 300 12px "Sarabun", sans-serif; color: var(--text-muted); }
+  .tabs button.on { background: var(--primary); color: #fff; box-shadow: 0 6px 16px rgba(46,134,222,.3); }
+  .tabs button.on small { color: rgba(255,255,255,.85); }
+  .tabs button:not(.on):hover { background: var(--sky-bg); }
+  [hidden] { display: none !important; }
+  .live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #3ccf91; margin-right: 5px; vertical-align: middle; animation: pulse 1.8s ease-in-out infinite; }
+  .live-dot.off { background: var(--text-muted); animation: none; }
+  .updated { color: var(--text-muted); font-size: 12.5px; }
+
+  .banner { border-radius: 22px; padding: 13px 18px; margin-bottom: 16px; font-size: 14px; display: none; box-shadow: var(--bubble); }
+  .banner.show { display: block; }
+  .banner.crit { background: #ffe6e6; } .banner.warn { background: var(--yellow-bg); }
+  code { background: rgba(46,134,222,.1); padding: 2px 7px; border-radius: 8px; font-size: 12.5px; }
+
+  .tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 20px; }
+  .tile { border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--bubble); position: relative;
+    transition: transform .2s, box-shadow .2s; overflow: hidden; }
+  .tile::after { content: ""; position: absolute; right: -18px; top: -18px; width: 70px; height: 70px; border-radius: 50%;
+    background: rgba(255,255,255,.55); }
+  .tile:hover { transform: translateY(-3px); box-shadow: var(--bubble-hover); }
+  .tile:nth-child(1) { background: var(--yellow-bg); } .tile:nth-child(2) { background: var(--mint-bg); }
+  .tile:nth-child(3) { background: var(--pink-bg); } .tile:nth-child(4) { background: var(--sky-bg); }
+  .tile:nth-child(5) { background: #fff; }
+  .tile .ico { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-size: 19px;
+    background: #fff; box-shadow: 0 3px 10px rgba(35,48,79,.08); margin-bottom: 8px; }
+  .tile .label { color: var(--text-secondary); font-size: 13px; }
+  .tile .value { font-size: 27px; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1.3; }
+  .tile .sub { color: var(--text-muted); font-size: 12.5px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .pos-text { color: var(--good-text); } .neg-text { color: var(--critical-text); }
+
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; }
+  .card { background: #fff; border-radius: var(--radius); padding: 20px; min-width: 0; box-shadow: var(--bubble); }
+  .card h2 { margin: 0 0 2px; font-size: 19px; font-weight: 500; display: flex; align-items: center; gap: 9px; }
+  .card h2 .em { width: 34px; height: 34px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 17px; background: var(--sky-bg); }
+  .card:nth-of-type(2n) h2 .em { background: var(--pink-bg); }
+  .card .desc { color: var(--text-muted); font-size: 13px; margin: 2px 0 12px 43px; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 8px; }
+  .legend i { display: inline-block; width: 16px; height: 3px; vertical-align: middle; margin-right: 6px; border-radius: 3px; }
+  .legend i.box { width: 10px; height: 10px; border-radius: 50%; }
+  .chart { position: relative; width: 100%; background: var(--surface-2); border-radius: 22px; padding: 10px 6px 4px; }
+  .chart svg { display: block; max-width: 100%; overflow: visible; }
+  .tip { position: absolute; pointer-events: none; background: #fff; border-radius: 16px; padding: 9px 12px; font-size: 12.5px;
+    line-height: 1.5; white-space: nowrap; box-shadow: 0 10px 28px rgba(35,48,79,.16); display: none; z-index: 5; font-variant-numeric: tabular-nums; }
+  .tip .t { color: var(--text-muted); margin-bottom: 2px; }
+  .tip .row { display: flex; justify-content: space-between; gap: 14px; }
+  .tip .row span:first-child { color: var(--text-secondary); }
+
+  .side { display: flex; flex-direction: column; gap: 20px; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .kv dt { color: var(--text-secondary); } .kv dd { margin: 0; text-align: right; }
+  .empty { color: var(--text-muted); font-size: 14px; padding: 10px 14px; background: var(--surface-2); border-radius: 18px; }
+  .range { margin: 18px 0 4px; position: relative; height: 12px; border-radius: 99px;
+    background: linear-gradient(90deg, #ffc2c2, #fff1c4 50%, #b7efd6); }
+  .range .now { position: absolute; top: -11px; font-size: 22px; transform: translateX(-50%); filter: drop-shadow(0 2px 3px rgba(35,48,79,.2)); }
+  .range-labels { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-muted); margin-top: 8px; }
+
+  .gate-row { margin-bottom: 14px; font-size: 14px; }
+  .gate-row .top { display: flex; justify-content: space-between; }
+  .bar { height: 12px; border-radius: 99px; background: #edf4fd; margin-top: 6px; overflow: hidden; }
+  .bar > div { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #8cc8ff, var(--primary)); }
+  .check { display: flex; gap: 8px; align-items: baseline; font-size: 13.5px; color: var(--text-secondary); margin-top: 7px; }
+  .check .ic { width: 18px; text-align: center; }
+
+  table { width: 100%; border-collapse: separate; border-spacing: 0 7px; font-size: 14px; font-variant-numeric: tabular-nums; }
+  th { text-align: left; color: var(--text-muted); font-weight: 300; font-size: 12.5px; padding: 2px 12px; }
+  td { padding: 10px 12px; background: var(--surface-2); }
+  tr:nth-child(4n+2) td { background: var(--pink-bg); } tr:nth-child(4n+3) td { background: var(--mint-bg); }
+  td:first-child { border-radius: 16px 0 0 16px; } td:last-child { border-radius: 0 16px 16px 0; }
+  td.num, th.num { text-align: right; }
+  .tag { font-size: 12px; padding: 3px 10px; border-radius: 99px; background: #fff; color: var(--text-secondary); white-space: nowrap; box-shadow: 0 1px 4px rgba(35,48,79,.06); }
+  .full { grid-column: 1 / -1; }
+  footer { color: var(--text-muted); font-size: 12.5px; margin-top: 24px; line-height: 1.8; text-align: center; }
+  .table-scroll { overflow-x: auto; }
+
+  /* ---------------- น้องแพนด้าโตมร ---------------- */
+  .tomorn { position: fixed; right: 18px; bottom: 10px; z-index: 20; display: flex; align-items: flex-end; gap: 4px; pointer-events: none; }
+  .tomorn .bubble { pointer-events: auto; cursor: pointer; max-width: 255px; background: #fff; border-radius: 24px 24px 6px 24px;
+    padding: 12px 16px; font-size: 14.5px; line-height: 1.45; box-shadow: 0 14px 36px rgba(46,134,222,.22);
+    margin-bottom: 92px; margin-right: -14px; transform-origin: bottom right; animation: pop .4s cubic-bezier(.3,1.6,.6,1); }
+  .tomorn .bubble small { display: block; color: var(--text-muted); font-size: 12px; font-family: "Sarabun", sans-serif; margin-top: 2px; }
+  .tomorn.hide-bubble .bubble { display: none; }
+  @keyframes pop { from { transform: scale(.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .tomorn .panda { pointer-events: auto; cursor: pointer; width: 168px; height: 130px; animation: bob 3.2s ease-in-out infinite;
+    transform-origin: 50% 100%; filter: drop-shadow(0 8px 10px rgba(46,134,222,.25)); }
+  .tomorn .panda svg { overflow: visible; width: 100%; height: 100%; }
+  .tomorn .panda:hover { animation-duration: 1.3s; }
+  @keyframes bob { 0%,100% { transform: translateY(0) scale(1, 1); } 50% { transform: translateY(-3px) scale(1.03, .97); } }
+  .panda .eye-open { animation: blink 4.5s infinite; transform-origin: center; transform-box: fill-box; }
+  @keyframes blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
+  .panda .arm-wave { transform-origin: 62px 98px; transform-box: view-box; }
+  .tomorn.wave .arm-wave { animation: wave .45s ease-in-out 4; }
+  @keyframes wave { 50% { transform: translate(-4px,-14px) rotate(-35deg); } }
+  .panda .sleep, .panda .eyes-sleep { display: none; }
+  .tomorn.sleeping .eye-open, .tomorn.sleeping .eye-shine { display: none; }
+  .tomorn.sleeping .eyes-sleep, .tomorn.sleeping .sleep { display: inline; }
+  .tomorn.sleeping .panda { animation: bob 5s ease-in-out infinite; }
+  .panda .zz { animation: zz 2.4s ease-in-out infinite; }
+  @keyframes zz { 0% { opacity: 0; transform: translate(0,4px); } 40% { opacity: 1; } 100% { opacity: 0; transform: translate(6px,-12px); } }
+  .tomorn.sad .mouth-happy { display: none; } .panda .mouth-sad, .panda .tear { display: none; }
+  .tomorn.sad .mouth-sad, .tomorn.sad .tear { display: inline; }
+  .tomorn.happy .sparkle { display: inline; } .panda .sparkle { display: none; animation: twinkle 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  @keyframes twinkle { 50% { transform: scale(.5) rotate(20deg); opacity: .5; } }
+
+  @media (max-width: 960px) {
+    .tiles { grid-template-columns: repeat(2, 1fr); }
+    .tiles .tile:first-child { grid-column: 1 / -1; }
+    .grid { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .hide-sm { display: none; } td, th { padding: 9px 7px; } .tile .value { font-size: 23px; }
+    .logo h1 { font-size: 27px; } .card { padding: 16px; } .card .desc { margin-left: 0; }
+    .tomorn { right: 4px; bottom: 4px; } .tomorn .panda { width: 116px; height: 90px; }
+    .tomorn .bubble { max-width: 195px; font-size: 13.5px; margin-bottom: 64px; margin-right: -10px; }
+    .wrap { padding-bottom: 140px; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><filter id="wobble"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter></svg>
+<div class="doodles" id="doodles" aria-hidden="true"></div>
+<script>
+// ดาวกับเหรียญ B ลอย ๆ แบบโดเดิ้ล: [ขนาด, ตำแหน่ง, สีดาว หรือ "coin"]
+(() => {
+  const STAR = "M20 4 L24.6 14.6 L36 15.6 L27.4 23.2 L30 34.4 L20 28.4 L10 34.4 L12.6 23.2 L4 15.6 L15.4 14.6 Z";
+  const COIN = `<g filter="url(#wobble)"><circle cx="20" cy="20" r="15" fill="#ffd25e" stroke="#23304f" stroke-width="2.2"/><circle cx="20" cy="20" r="10.5" fill="none" stroke="#e8a92a" stroke-width="2"/><text x="20" y="25.5" text-anchor="middle" font-size="15" font-weight="700" fill="#c98a12" font-family="Kanit, sans-serif">B</text></g>`;
+  document.getElementById("doodles").innerHTML = [[34,"left:3%;top:12%","#ffe28a"],[38,"left:93%;top:9%;animation-delay:-2s","coin"],[24,"left:47%;top:3%;animation-delay:-4s","#ffb3cf"],[30,"left:6%;top:58%;animation-delay:-3s","coin"],[28,"left:95%;top:46%;animation-delay:-1s","#9be3c6"],[20,"left:30%;top:92%;animation-delay:-5s","#ffe28a"],[26,"left:70%;top:94%;animation-delay:-6s","coin"],[22,"left:2%;top:86%;animation-delay:-2.5s","#8cc8ff"]].map(([w, st, k]) =>
+    `<svg width="${w}" height="${w}" viewBox="0 0 40 40" style="${st}">${k === "coin" ? COIN
+      : `<path filter="url(#wobble)" d="${STAR}" fill="${k}" stroke="#23304f" stroke-width="2.2" stroke-linejoin="round"/>`}</svg>`).join("");
+})();
+</script>
+<div class="wrap">
+  <header>
+    <div class="logo">
+      <div class="logo-mark"><svg viewBox="0 0 70 56" width="52" height="42" aria-hidden="true"><g filter="url(#wobble)" stroke="#1d1d1f" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+  <ellipse cx="17" cy="12" rx="7" ry="6.5" fill="#1d1d1f"/><ellipse cx="53" cy="12" rx="7" ry="6.5" fill="#1d1d1f"/>
+  <path d="M5 33 C4 17 18 7 35 7 C52 7 66 17 65 33 C64 46 52 51 35 51 C18 51 6 46 5 33Z" fill="#fff"/>
+  <ellipse cx="25" cy="26" rx="6.6" ry="5.8" fill="#1d1d1f" transform="rotate(-18 25 26)"/>
+  <ellipse cx="45" cy="26" rx="6.6" ry="5.8" fill="#1d1d1f" transform="rotate(18 45 26)"/>
+  <circle cx="26" cy="25.5" r="1.9" fill="#fff" stroke="none"/><circle cx="44" cy="25.5" r="1.9" fill="#fff" stroke="none"/>
+  <ellipse cx="15" cy="34" rx="4" ry="2.4" fill="#ffb3cf" stroke="none"/><ellipse cx="55" cy="34" rx="4" ry="2.4" fill="#ffb3cf" stroke="none"/>
+  <ellipse cx="35" cy="31" rx="2.2" ry="1.5" fill="#1d1d1f"/>
+  <path d="M32 34.5 q1.5 1.8 3 0 q1.5 1.8 3 0" fill="none" stroke-width="1.6"/>
+  <path d="M64 2 l1.3 2.8 2.8 1.3 -2.8 1.3 -1.3 2.8 -1.3 -2.8 -2.8 -1.3 2.8 -1.3z" fill="#ffe28a" stroke-width="1.2"/></g></svg></div>
+      <div><h1>Tomo<span>rn</span></h1><small>บ้านบอทเทรดของแพนด้าโตมร</small></div>
+    </div>
+    <span class="chip" id="mode-chip">โหมด <b>—</b></span>
+    <span class="chip" id="status-chip"><span class="dot"></span><span>กำลังโหลด…</span></span>
+    <span class="spacer"></span>
+    <span class="updated" id="updated"></span>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="เลือกบอท">
+    <button id="tab-spot" class="on" role="tab" onclick="setView('spot')">🐼 Tomorn <small>Spot · Binance TH</small></button>
+    <button id="tab-ft" role="tab" onclick="setView('ft')">⚡ FT Tomorn <small>Delta neutral · Demo</small></button>
+  </nav>
+
+  <div id="view-spot">
+  <div class="banner crit" id="banner-halt">🛑 <b>Kill switch ทำงาน</b> — พอร์ตลดลงเกินเพดานที่ตั้งไว้ บอทหยุดเปิดไม้ใหม่แล้ว ตรวจสอบแล้วปลดล็อกด้วย <code>python3 runner.py --reset-halt</code></div>
+  <div class="banner warn" id="banner-stale"></div>
+
+  <section class="tiles">
+    <div class="tile"><div class="ico">💰</div><div class="label">มูลค่าพอร์ต</div><div class="value" id="t-equity">—</div><div class="sub" id="t-equity-sub">—</div></div>
+    <div class="tile"><div class="ico">📈</div><div class="label">กำไร/ขาดทุนที่ปิดแล้ว</div><div class="value" id="t-pnl">—</div><div class="sub" id="t-pnl-sub">—</div></div>
+    <div class="tile"><div class="ico">🎯</div><div class="label">จำนวนไม้</div><div class="value" id="t-trades">—</div><div class="sub" id="t-trades-sub">—</div></div>
+    <div class="tile"><div class="ico">⚖️</div><div class="label">Profit Factor</div><div class="value" id="t-pf">—</div><div class="sub">กำไรรวม ÷ ขาดทุนรวม (≥ 1.2 ผ่านด่าน)</div></div>
+    <div class="tile"><div class="ico">🪙</div><div class="label">ราคา BTC</div><div class="value" id="t-price">—</div><div class="sub" id="t-price-sub">—</div></div>
+  </section>
+
+  <div class="grid">
+    <div class="card">
+      <h2><span class="em">📊</span>กราฟ BTC/USDT · แท่ง 4 ชั่วโมง</h2>
+      <div class="desc">ราคาสดจาก Binance TH · แท่งขวาสุดยังไม่ปิด ขยับตามราคาจริงทุก 5 วินาที · ▲ จุดเข้าไม้ · ● จุดปิดไม้ (เขียว = กำไร, แดง = ขาดทุน)</div>
+      <div class="legend">
+        <span><i class="box" style="background:var(--up)"></i>แท่งขึ้น</span>
+        <span><i class="box" style="background:var(--down)"></i>แท่งลง</span>
+        <span><i style="background:var(--series-1)"></i>EMA 20</span>
+        <span><i style="background:var(--series-2)"></i>EMA 50</span>
+      </div>
+      <div class="chart" id="price-chart"><div class="tip"></div></div>
+    </div>
+
+    <div class="side">
+      <div class="card" id="pos-card">
+        <h2><span class="em">🎒</span>ไม้ที่ถืออยู่</h2>
+        <div class="desc" id="pos-desc">—</div>
+        <div id="pos-body"></div>
+      </div>
+      <div class="card">
+        <h2><span class="em">🔐</span>ด่านปลดล็อกเงินจริง</h2>
+        <div class="desc">ต้องผ่านครบ บอทถึงยอมเทรดเงินจริง</div>
+        <div id="gate-body"></div>
+      </div>
+    </div>
+
+    <div class="card full">
+      <h2><span class="em">🌱</span>พอร์ตจำลองโตขึ้นยังไงบ้าง</h2>
+      <div class="desc" id="eq-desc">อัปเดตทุกครั้งที่ปิดไม้ · เส้นประ = ทุนเริ่มต้น</div>
+      <div class="chart" id="equity-chart"><div class="tip"></div></div>
+    </div>
+
+    <div class="card full">
+      <h2><span class="em">📒</span>สมุดบันทึกการเทรด</h2>
+      <div class="desc">ล่าสุดอยู่บน · ทุกตัวเลขหักค่าธรรมเนียม + slippage แล้ว</div>
+      <div class="table-scroll" id="trades-body"></div>
+    </div>
+  </div>
+  </div>
+  <div id="view-ft" hidden></div>
+
+  <footer id="footer"></footer>
+</div>
+
+<div class="tomorn" id="tomorn">
+  <div class="bubble" id="bubble">สวัสดีจ้า โตมรเอง 🐼<small>กำลังโหลดข้อมูล…</small></div>
+  <div class="panda" id="panda" title="จิ้มโตมรสิ"><svg viewBox="0 0 150 116" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="น้องแพนด้าโตมร">
+  <defs><clipPath id="blobClip"><path d="M18 74 C15 42 40 20 75 20 C110 20 135 42 132 74 C130 98 108 108 75 108 C42 108 20 98 18 74Z"/></clipPath></defs>
+  <!-- หู -->
+  <ellipse cx="40" cy="27" rx="13" ry="12" fill="#1d1d1f"/><ellipse cx="110" cy="27" rx="13" ry="12" fill="#1d1d1f"/>
+  <!-- เท้าหลัง -->
+  <ellipse cx="128" cy="96" rx="13" ry="10" fill="#1d1d1f" transform="rotate(-25 128 96)"/>
+  <!-- ตัวโมจิ -->
+  <path d="M18 74 C15 42 40 20 75 20 C110 20 135 42 132 74 C130 98 108 108 75 108 C42 108 20 98 18 74Z" fill="#fff"/>
+  <!-- คำว่า Tomorn ที่พุง -->
+  <text x="75" y="88" text-anchor="middle" font-size="10" font-weight="600" fill="#8cc8ff" font-family="Kanit, sans-serif">Tomorn</text>
+  <!-- เส้นขอบตัว -->
+  <path d="M18 74 C15 42 40 20 75 20 C110 20 135 42 132 74 C130 98 108 108 75 108 C42 108 20 98 18 74Z" fill="none" stroke="#1d1d1f" stroke-width="2.6"/>
+  <!-- ปื้นตา -->
+  <ellipse cx="55" cy="51" rx="12" ry="10.5" fill="#1d1d1f" transform="rotate(-18 55 51)"/>
+  <ellipse cx="95" cy="51" rx="12" ry="10.5" fill="#1d1d1f" transform="rotate(18 95 51)"/>
+  <g class="eye-open"><circle cx="57" cy="50" r="3.4" fill="#fff"/><circle cx="93" cy="50" r="3.4" fill="#fff"/>
+    <circle cx="57.6" cy="50.4" r="1.7" fill="#1d1d1f"/><circle cx="92.4" cy="50.4" r="1.7" fill="#1d1d1f"/></g>
+  <g class="eye-shine"></g>
+  <g class="eyes-sleep" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"><path d="M51 51 q5 3.5 10 0"/><path d="M89 51 q5 3.5 10 0"/></g>
+  <!-- แก้ม -->
+  <ellipse cx="38" cy="65" rx="7" ry="4.2" fill="#ffb3cf"/><ellipse cx="112" cy="65" rx="7" ry="4.2" fill="#ffb3cf"/>
+  <!-- จมูก ปาก -->
+  <ellipse cx="75" cy="60" rx="4" ry="2.8" fill="#1d1d1f"/>
+  <path class="mouth-happy" d="M70 64.5 q2.5 3 5 0 q2.5 3 5 0" fill="none" stroke="#1d1d1f" stroke-width="1.8" stroke-linecap="round"/>
+  <path class="mouth-sad" d="M70.5 68 q4.5 -3.5 9 0" fill="none" stroke="#1d1d1f" stroke-width="1.8" stroke-linecap="round"/>
+  <path class="tear" d="M104 59 q2.6 4.4 0 6.2 q-2.6 -1.8 0 -6.2z" fill="#8cc8ff"/>
+  <!-- มือหน้า -->
+  <ellipse cx="96" cy="102" rx="12" ry="8" fill="#1d1d1f"/>
+  <g class="arm-wave"><ellipse cx="54" cy="102" rx="12" ry="8" fill="#1d1d1f"/></g>
+  <!-- ประกายตอนบวก -->
+  <g><path class="sparkle" d="M134 14 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" fill="#ffe28a" stroke="#1d1d1f" stroke-width="1.2"/>
+    <path class="sparkle" style="animation-delay:.5s" d="M12 40 l1.5 3.5 3.5 1.5 -3.5 1.5 -1.5 3.5 -1.5 -3.5 -3.5 -1.5 3.5 -1.5z" fill="#ffb3cf" stroke="#1d1d1f" stroke-width="1.1"/></g>
+  <g class="sleep" font-family="Kanit, sans-serif" font-weight="600" fill="#2e86de">
+    <text class="zz" x="124" y="12" font-size="15">z</text><text class="zz" x="135" y="0" font-size="11" style="animation-delay:.8s">z</text></g>
+</svg></div>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmt = (v, d = 2) => v == null || isNaN(v) ? "—" : Number(v).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+const sign = (v, d = 2) => v == null ? "—" : (v >= 0 ? "+" : "−") + fmt(Math.abs(v), d);
+const pct = (v, d = 2) => v == null ? "—" : sign(v, d) + "%";
+const TZ = "Asia/Bangkok";
+const dt = (ms, withTime = true) => new Date(ms).toLocaleString("th-TH", withTime
+  ? { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }
+  : { timeZone: TZ, day: "numeric", month: "short" });
+const ago = (ms) => { const m = Math.round(ms / 60000); return m < 1 ? "เมื่อสักครู่" : m < 60 ? `${m} นาทีที่แล้ว` : m < 1440 ? `${Math.round(m / 60)} ชั่วโมงที่แล้ว` : `${Math.round(m / 1440)} วันที่แล้ว`; };
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function niceTicks(min, max, n = 5) {
+  const span = max - min || 1, raw = span / n, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map(s => s * mag).find(s => span / s <= n) || mag * 10;
+  const out = []; for (let v = Math.ceil(min / step) * step; v <= max + 1e-9; v += step) out.push(v);
+  return out;
+}
+
+let DATA = null;
+let VIEW = location.hash === "#ft" ? "ft" : "spot";
+function setView(v) {
+  VIEW = v; history.replaceState(null, "", v === "ft" ? "#ft" : location.pathname);
+  $("#view-spot").hidden = v !== "spot"; $("#view-ft").hidden = v !== "ft";
+  $("#tab-spot").classList.toggle("on", v === "spot"); $("#tab-ft").classList.toggle("on", v === "ft");
+  if (typeof onViewChange === "function") onViewChange(v);   // ft_view.js: สลับธีมมืด + แว่นเท่ของน้องโตมร
+  lastMood = ""; load();
+}
+const hovering = {};   // กำลังชี้/แตะกราฟอยู่ → ยังไม่วาดใหม่ กล่องรายละเอียดจะได้ไม่หายทุก 5 วินาที
+
+// ------------------------------------------------------------------ price chart
+function drawPrice() {
+  const box = $("#price-chart"), tip = box.querySelector(".tip");
+  box.querySelectorAll("svg").forEach(s => s.remove());
+  const W0 = box.clientWidth, keep = W0 < 600 ? 70 : DATA.candles.length, off = DATA.candles.length - Math.min(keep, DATA.candles.length);
+  const C = DATA.candles.slice(off), E20 = DATA.ema20.slice(off), E50 = DATA.ema50.slice(off);
+  if (!C.length) { box.insertAdjacentHTML("afterbegin", `<div class="empty">ยังไม่มีข้อมูลราคา — รัน runner.py ก่อน</div>`); return; }
+  const W = box.clientWidth, H = W < 600 ? 280 : 430, m = { l: 6, r: 80, t: 10, b: 26 };
+  const P = DATA.portfolio, pos = P && P.pos, pend = P && P.pend;
+  let lo = Math.min(...C.map(c => c[3])), hi = Math.max(...C.map(c => c[2]));
+  const extra = [];
+  if (pos) { extra.push(["SL", pos.sl, "--critical"], ["เข้า", pos.entry, "--text-secondary"]); pos.tps.forEach((t, i) => t[0] && extra.push([pos.tps.length > 1 ? `TP${i + 1}` : "TP", t[0], "--good"])); }
+  if (pend && pend.type === "limit") extra.push(["Limit", pend.entry, "--series-1"]);
+  if (DATA.last_price) extra.push(["ราคา", DATA.last_price, "--primary"]);
+  extra.forEach(e => { lo = Math.min(lo, e[1]); hi = Math.max(hi, e[1]); });
+  const pad = (hi - lo) * 0.06; lo -= pad; hi += pad;
+  const n = C.length, step = (W - m.l - m.r) / n;
+  const x = i => m.l + step * (i + 0.5), y = v => m.t + (hi - v) / (hi - lo) * (H - m.t - m.b);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H });
+  box.insertBefore(svg, tip);
+  // grid + y axis (recessive)
+  niceTicks(lo, hi, 5).forEach(v => {
+    el("line", { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), stroke: css("--grid"), "stroke-width": 1 }, svg);
+    el("text", { x: W - m.r + 8, y: y(v) + 4, fill: css("--text-muted"), "font-size": 11 }, svg).textContent = fmt(v, 0);
+  });
+  // x labels — one per day boundary, thinned
+  const every = Math.ceil(n / (W < 600 ? 4 : 8));
+  C.forEach((c, i) => { if (i % every === 0) el("text", { x: x(i), y: H - 8, fill: css("--text-muted"), "font-size": 11, "text-anchor": "middle" }, svg).textContent = dt(c[0], false); });
+  // candles
+  const bw = Math.max(1.5, Math.min(9, step * 0.62));
+  C.forEach((c, i) => {
+    const up = c[4] >= c[1], col = css(up ? "--up" : "--down"), live = DATA.forming && i === n - 1;
+    el("line", { x1: x(i), x2: x(i), y1: y(c[2]), y2: y(c[3]), stroke: col, "stroke-width": 1 }, svg);
+    const top = y(Math.max(c[1], c[4])), h = Math.max(1, Math.abs(y(c[1]) - y(c[4])));
+    el("rect", { x: x(i) - bw / 2, y: top, width: bw, height: h, fill: col, rx: Math.min(1.5, bw / 3),
+      "fill-opacity": live ? .55 : 1, stroke: live ? col : "none", "stroke-width": live ? 1.2 : 0 }, svg);
+  });
+  // EMA lines
+  [[E20, "--series-1"], [E50, "--series-2"]].forEach(([arr, v]) => {
+    const pts = arr.map((e, i) => e == null ? null : `${x(i).toFixed(1)},${y(e).toFixed(1)}`).filter(Boolean);
+    if (pts.length > 1) el("polyline", { points: pts.join(" "), fill: "none", stroke: css(v), "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
+  });
+  // position / pending lines with right-axis tags
+  // ป้ายด้านขวา: ดันไม่ให้ทับกัน (เช่น ราคาตอนนี้ใกล้ราคาเข้า)
+  const tags = extra.map(([label, v, color]) => ({ label, v, col: css(color), y: y(v) })).sort((a, b) => a.y - b.y);
+  for (let k = 1; k < tags.length; k++) tags[k].ty = Math.max(tags[k].y, (tags[k - 1].ty ?? tags[k - 1].y) + 19);
+  tags.forEach(t => {
+    const ty = t.ty ?? t.y;
+    el("line", { x1: m.l, x2: W - m.r, y1: t.y, y2: t.y, stroke: t.col, "stroke-width": 1.5, "stroke-dasharray": "5 4" }, svg);
+    el("rect", { x: W - m.r + 2, y: ty - 9, width: m.r - 4, height: 18, rx: 4, fill: t.col }, svg);
+    el("text", { x: W - m.r + 6, y: ty + 4, fill: "#fff", "font-size": 10.5, "font-weight": 600 }, svg).textContent = `${t.label} ${fmt(t.v, 0)}`;
+  });
+  // trade markers
+  const tf = C.length > 1 ? C[1][0] - C[0][0] : 14400000, t0 = C[0][0];
+  const idx = t => { const i = Math.floor((t - t0) / tf); return i >= 0 && i < n ? i : null; };
+  const trades = (P && P.history) || [];
+  const marks = trades.map(t => ({ i: idx(t.entry_time), kind: "in", t })).concat(trades.map(t => ({ i: idx(t.exit_time), kind: "out", t })));
+  if (pos) marks.push({ i: idx(pos.time), kind: "in", t: pos });
+  marks.filter(mk => mk.i != null).forEach(mk => {
+    const c = C[mk.i], cx = x(mk.i);
+    if (mk.kind === "in") {
+      const yy = y(c[3]) + 12;
+      el("path", { d: `M${cx},${yy - 6} l6,10 h-12 z`, fill: css("--series-1"), stroke: css("--surface-1"), "stroke-width": 2 }, svg);
+    } else {
+      el("circle", { cx, cy: y(c[2]) - 10, r: 5, fill: css(mk.t.pnl > 0 ? "--good" : "--critical"), stroke: css("--surface-1"), "stroke-width": 2 }, svg);
+    }
+  });
+  // hover: crosshair + tooltip
+  const cross = el("line", { y1: m.t, y2: H - m.b, stroke: css("--text-muted"), "stroke-width": 1, "stroke-dasharray": "3 3", visibility: "hidden" }, svg);
+  const hit = el("rect", { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b, fill: "transparent" }, svg);
+  const move = ev => {
+    const r = svg.getBoundingClientRect(), px = (ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left;
+    const i = Math.max(0, Math.min(n - 1, Math.floor((px - m.l) / step))), c = C[i];
+    cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i)); cross.setAttribute("visibility", "visible");
+    const ch = (c[4] / c[1] - 1) * 100;
+    tip.innerHTML = `<div class="t">${dt(c[0])}${DATA.forming && i === n - 1 ? " · ยังไม่ปิด" : ""}</div>
+      <div class="row"><span>เปิด</span><b>${fmt(c[1])}</b></div><div class="row"><span>สูง</span><b>${fmt(c[2])}</b></div>
+      <div class="row"><span>ต่ำ</span><b>${fmt(c[3])}</b></div><div class="row"><span>ปิด</span><b>${fmt(c[4])} <span class="${ch >= 0 ? "pos-text" : "neg-text"}">(${pct(ch)})</span></b></div>
+      <div class="row"><span>EMA 20</span><b>${fmt(E20[i])}</b></div><div class="row"><span>EMA 50</span><b>${fmt(E50[i])}</b></div>`;
+    tip.style.display = "block";
+    const tw = tip.offsetWidth; let left = x(i) + 14; if (left + tw > W) left = x(i) - tw - 14;
+    tip.style.left = left + "px"; tip.style.top = m.t + 4 + "px";
+  };
+  const leave = () => { tip.style.display = "none"; cross.setAttribute("visibility", "hidden"); };
+  hit.addEventListener("pointermove", move); hit.addEventListener("pointerleave", leave);
+  hit.addEventListener("touchmove", move, { passive: true }); hit.addEventListener("touchend", leave);
+}
+
+// ------------------------------------------------------------------ equity chart
+function drawEquity() {
+  const box = $("#equity-chart"), tip = box.querySelector(".tip");
+  box.querySelectorAll("svg, .empty").forEach(s => s.remove());
+  const P = DATA.portfolio; if (!P) { box.insertAdjacentHTML("afterbegin", `<div class="empty">ยังไม่มีพอร์ตจำลอง — รัน <code>python3 runner.py</code> ในโหมด paper</div>`); return; }
+  const pts = P.curve, W = box.clientWidth, H = 220, m = { l: 6, r: 70, t: 12, b: 26 };
+  const t0 = pts[0][0], t1 = Math.max(pts[pts.length - 1][0], t0 + 3600000);
+  let lo = Math.min(P.start, ...pts.map(p => p[1])), hi = Math.max(P.start, ...pts.map(p => p[1]));
+  const pad = Math.max((hi - lo) * 0.15, P.start * 0.02); lo -= pad; hi += pad;   // พอร์ตยังไม่ขยับ → ช่วง ±2% รอบทุน
+  const x = t => m.l + (t - t0) / (t1 - t0) * (W - m.l - m.r), y = v => m.t + (hi - v) / (hi - lo) * (H - m.t - m.b);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H }); box.insertBefore(svg, tip);
+  niceTicks(lo, hi, 4).forEach(v => {
+    el("line", { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), stroke: css("--grid") }, svg);
+    el("text", { x: W - m.r + 8, y: y(v) + 4, fill: css("--text-muted"), "font-size": 11 }, svg).textContent = fmt(v, 0);
+  });
+  el("text", { x: m.l, y: H - 8, fill: css("--text-muted"), "font-size": 11 }, svg).textContent = dt(t0, false);
+  el("text", { x: W - m.r, y: H - 8, fill: css("--text-muted"), "font-size": 11, "text-anchor": "end" }, svg).textContent = "ตอนนี้";
+  // baseline = start capital
+  el("line", { x1: m.l, x2: W - m.r, y1: y(P.start), y2: y(P.start), stroke: css("--text-muted"), "stroke-dasharray": "5 4" }, svg);
+  el("text", { x: m.l + 4, y: y(P.start) - 6, fill: css("--text-muted"), "font-size": 11 }, svg).textContent = `ทุนเริ่มต้น ${fmt(P.start, 0)}`;
+  // step line (equity changes only when a trade closes)
+  let d = `M${x(pts[0][0])},${y(pts[0][1])}`;
+  for (let k = 1; k < pts.length; k++) d += ` H${x(pts[k][0])} V${y(pts[k][1])}`;
+  const g = el("linearGradient", { id: "eqg", x1: 0, x2: 0, y1: 0, y2: 1 }, el("defs", {}, svg));
+  el("stop", { offset: "0%", "stop-color": css("--series-1"), "stop-opacity": .28 }, g);
+  el("stop", { offset: "100%", "stop-color": css("--series-1"), "stop-opacity": 0 }, g);
+  el("path", { d: d + ` V${H - m.b} H${x(pts[0][0])} Z`, fill: "url(#eqg)" }, svg);
+  el("path", { d, fill: "none", stroke: css("--series-1"), "stroke-width": 2, "stroke-linejoin": "round" }, svg);
+  pts.slice(1, -1).forEach(p => el("circle", { cx: x(p[0]), cy: y(p[1]), r: 4, fill: css("--series-1"), stroke: css("--surface-1"), "stroke-width": 2 }, svg));
+  const last = pts[pts.length - 1];
+  el("circle", { cx: x(last[0]), cy: y(last[1]), r: 5, fill: css("--series-1"), stroke: css("--surface-1"), "stroke-width": 2 }, svg);
+  if (pts.length <= 2) el("text", { x: (W - m.r) / 2, y: m.t + 22, fill: css("--text-muted"), "font-size": 13, "text-anchor": "middle" }, svg).textContent = "ยังไม่มีไม้ที่ปิด — เส้นจะขยับเมื่อบอทปิดไม้แรก";
+  const hit = el("rect", { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b, fill: "transparent" }, svg);
+  hit.addEventListener("pointermove", ev => {
+    const r = svg.getBoundingClientRect(), px = ev.clientX - r.left;
+    let best = 0; pts.forEach((p, k) => { if (Math.abs(x(p[0]) - px) < Math.abs(x(pts[best][0]) - px)) best = k; });
+    const p = pts[best], tr = p[2] ? { name: p[2], pnl: p[3] } : null;
+    tip.innerHTML = `<div class="t">${best === pts.length - 1 ? "ตอนนี้" : dt(p[0])}</div><div class="row"><span>พอร์ต</span><b>${fmt(p[1])} USDT</b></div>` +
+      (tr ? `<div class="row"><span>${tr.name}</span><b class="${tr.pnl > 0 ? "pos-text" : "neg-text"}">${sign(tr.pnl)}</b></div>` : "");
+    tip.style.display = "block"; let left = x(p[0]) + 12; if (left + tip.offsetWidth > W) left = x(p[0]) - tip.offsetWidth - 12;
+    tip.style.left = left + "px"; tip.style.top = Math.max(0, y(p[1]) - 50) + "px";
+  });
+  hit.addEventListener("pointerleave", () => tip.style.display = "none");
+}
+
+// ------------------------------------------------------------------ panels
+function render() {
+  const D = DATA, P = D.portfolio;
+  $("#mode-chip").innerHTML = `โหมด <b>${{ paper: "เทรดจำลอง", live: "เงินจริง", alert: "แจ้งเตือน" }[D.mode]}</b>`;
+  const stale = D.last_write ? D.now - D.last_write : Infinity, alive = stale < 5 * 60000;
+  $("#status-chip").innerHTML = `<span class="dot ${alive ? "on" : "off"}"></span><span>${alive ? "บอททำงานอยู่" : "บอทไม่ได้ทำงาน"}</span>`;
+  $("#updated").innerHTML = D.live
+    ? `<span class="live-dot"></span>ราคาสด ${new Date(D.price_at).toLocaleTimeString("th-TH", { timeZone: TZ })} · ${D.price_src}`
+    : `<span class="live-dot off"></span>ดึงราคาสดไม่ได้ ใช้ข้อมูลที่บอทเก็บไว้ · ${new Date(D.now).toLocaleTimeString("th-TH", { timeZone: TZ, hour: "2-digit", minute: "2-digit" })}`;
+  const sb = $("#banner-stale");
+  sb.classList.toggle("show", !alive);
+  sb.innerHTML = `⚠️ <b>บอทไม่ได้อัปเดตข้อมูล${D.last_write ? " " + ago(stale) : ""}</b> — เปิดบอทใน Terminal ด้วย <code>caffeinate -i python3 runner.py</code> (เว็บนี้แค่แสดงผล ไม่ได้รันบอทเอง)`;
+  $("#banner-halt").classList.toggle("show", !!(P && P.halted));
+
+  if (P) {
+    const r = P.return, cls = r >= 0 ? "pos-text" : "neg-text";
+    $("#t-equity").textContent = `${fmt(P.equity)}`;
+    $("#t-equity-sub").innerHTML = `USDT · <span class="${cls}">${pct(r)}</span> จากทุน ${fmt(P.start, 0)}`;
+    $("#t-pnl").innerHTML = `<span class="${P.pnl >= 0 ? "pos-text" : "neg-text"}">${sign(P.pnl)}</span>`;
+    $("#t-pnl-sub").textContent = P.pos ? `ไม้ที่ถือ: ${sign(P.upnl)} USDT (ยังไม่ปิด)` : "USDT · ไม่มีไม้ค้าง";
+    $("#t-trades").textContent = P.trades;
+    $("#t-trades-sub").textContent = P.trades ? `ชนะ ${fmt(P.win_rate, 0)}% (${Math.round(P.win_rate * P.trades / 100)}/${P.trades})` : "รอสัญญาณแรก";
+    $("#t-pf").textContent = P.pf_inf ? "∞" : P.trades ? fmt(P.pf) : "—";
+  }
+  $("#t-price").textContent = fmt(D.last_price);
+  const C = D.candles; if (C.length > 6) {
+    const ch = (C[C.length - 1][4] / C[C.length - 7][4] - 1) * 100;
+    $("#t-price-sub").innerHTML = `USDT · <span class="${ch >= 0 ? "pos-text" : "neg-text"}">${pct(ch)}</span> ใน 24 ชม.`;
+  }
+
+  // position card
+  const pos = P && P.pos, pend = P && P.pend;
+  if (pos) {
+    const px = D.last_price, tp = pos.tps.filter(t => t[0]).map(t => t[0]), tpFar = tp.length ? Math.max(...tp) : pos.entry;
+    const prog = Math.max(0, Math.min(100, (px - pos.sl) / (tpFar - pos.sl) * 100));
+    $("#pos-desc").textContent = `${pos.name} · เข้าเมื่อ ${dt(pos.time)}`;
+    $("#pos-body").innerHTML = `<dl class="kv">
+      <dt>ราคาเข้า</dt><dd>${fmt(pos.entry)}</dd>
+      <dt>ราคาตอนนี้</dt><dd>${fmt(px)}</dd>
+      <dt>ขนาดไม้</dt><dd>${fmt(pos.notional)} USDT</dd>
+      <dt>กำไร/ขาดทุนตอนนี้</dt><dd class="${pos && P.upnl >= 0 ? "pos-text" : "neg-text"}"><b>${sign(P.upnl)} USDT</b></dd>
+      <dt>Stop Loss</dt><dd>${fmt(pos.sl)} <span class="tag">${pct((pos.sl / pos.entry - 1) * 100)}</span></dd>
+      ${pos.tps.map((t, i) => t[0] ? `<dt>Take Profit${pos.tps.length > 1 ? " " + (i + 1) : ""}</dt><dd>${fmt(t[0])} <span class="tag">${pct((t[0] / pos.entry - 1) * 100)}</span></dd>` : `<dt>TP${i + 1}</dt><dd>✅ ปิดแล้ว</dd>`).join("")}
+    </dl>
+    <div class="range"><div class="now" style="left:${prog}%">🐼</div></div>
+    <div class="range-labels"><span>SL</span><span>ราคาตอนนี้อยู่ตรงไหนระหว่าง SL กับ TP</span><span>TP</span></div>`;
+  } else if (pend) {
+    $("#pos-desc").textContent = `${pend.name} · รอเข้าไม้`;
+    $("#pos-body").innerHTML = `<dl class="kv"><dt>${pend.type === "limit" ? "Buy Limit ที่" : "เข้าที่ราคาเปิดแท่งถัดไป ≈"}</dt><dd>${fmt(pend.entry)}</dd>
+      <dt>Stop Loss</dt><dd>${fmt(pend.sl)}</dd><dt>ขนาดไม้</dt><dd>${fmt(pend.notional)} USDT</dd></dl>`;
+  } else {
+    $("#pos-desc").textContent = "ยังไม่มีไม้";
+    $("#pos-body").innerHTML = `<div class="empty">บอทกำลังเฝ้ากราฟอยู่ จะเข้าไม้เมื่อกลยุทธ์ส่งสัญญาณบนแท่ง 4H ที่ปิดแล้ว (ปกติอาจรอหลายวัน)</div>`;
+  }
+
+  // gate card
+  const G = D.gate, need = G.need, pb = G.paper || { trades: 0, pf: null };
+  const tPct = Math.min(100, pb.trades / need.min_paper_trades * 100), pfPct = Math.min(100, (pb.pf || 0) / need.min_profit_factor * 100);
+  const okKey = !G.reasons.some(r => r.includes("API_KEY")), okEnable = !G.reasons.some(r => r.includes("LIVE_ENABLED"));
+  $("#gate-body").innerHTML = `
+    <div class="gate-row"><div class="top"><span>เทรดจำลองครบ ${need.min_paper_trades} ไม้</span><b>${pb.trades}/${need.min_paper_trades}</b></div><div class="bar"><div style="width:${tPct}%"></div></div></div>
+    <div class="gate-row"><div class="top"><span>Profit Factor ≥ ${need.min_profit_factor}</span><b>${pb.trades ? fmt(pb.pf) : "—"}</b></div><div class="bar"><div style="width:${pfPct}%;background:${pfPct >= 100 ? "var(--good)" : "var(--series-1)"}"></div></div></div>
+    <div class="check"><span class="ic">${okEnable ? "✅" : "⬜"}</span>เปิดสวิตช์ LIVE_ENABLED ใน config.py</div>
+    <div class="check"><span class="ic">${okKey ? "✅" : "⬜"}</span>ใส่ API key ของ Binance TH (Spot เท่านั้น ห้ามถอน)</div>
+    <div class="check" style="margin-top:10px"><span class="ic">${G.reasons.length ? "🔒" : "🔓"}</span><b>${G.reasons.length ? "ยังล็อกอยู่" : "ปลดล็อกแล้ว"}</b></div>`;
+
+  // trades table
+  const H = (P && P.history || []).slice().reverse();
+  $("#trades-body").innerHTML = H.length ? `<table><thead><tr><th>เข้าไม้</th><th class="hide-sm">ปิดไม้</th><th>กลยุทธ์</th><th class="num hide-sm">ราคาเข้า</th><th class="num hide-sm">ขนาดไม้</th><th>ผล</th><th class="num">กำไร/ขาดทุน</th></tr></thead><tbody>${
+    H.map(t => `<tr><td>${dt(t.entry_time)}</td><td class="hide-sm">${dt(t.exit_time)}</td><td><span class="tag">${t.name}</span></td>
+      <td class="num hide-sm">${fmt(t.entry)}</td><td class="num hide-sm">${fmt(t.notional)}</td><td>${t.pnl > 0 ? "✅" : "❌"} ${t.reason || ""}</td>
+      <td class="num ${t.pnl > 0 ? "pos-text" : "neg-text"}"><b>${sign(t.pnl)}</b> <span class="hide-sm" style="color:var(--text-muted)">(${pct(t.pnl / t.notional * 100)})</span></td></tr>`).join("")
+  }</tbody></table>` : `<div class="empty">ยังไม่มีไม้ที่ปิด — ไม้แรกจะขึ้นที่นี่</div>`;
+
+  const cf = D.config;
+  $("#footer").innerHTML = `กลยุทธ์ที่เปิด: ${cf.strategies.join(", ")} (ลำดับ ${cf.priority.join(" > ")}) · เสี่ยง ${cf.risk_pct * 100}% ต่อไม้ · R:R สุทธิขั้นต่ำ 1:${cf.min_rr} ·
+    ค่าธรรมเนียม ${(cf.fee * 100).toFixed(2)}% + slippage ${(cf.slippage * 100).toFixed(2)}% ต่อออเดอร์ · Kill switch ที่ −${cf.kill_dd * 100}%<br>
+    เว็บนี้แสดงผลอย่างเดียว ไม่ได้สั่งเทรด · ข้อมูลอยู่ในเครื่องคุณ · ผลในอดีตไม่รับประกันผลในอนาคต`;
+
+  if (!hovering["price-chart"]) drawPrice();
+  if (!hovering["equity-chart"]) drawEquity();
+  mascot(D);
+}
+
+// ------------------------------------------------------------------ น้องโตมรพูดตามสถานะบอท
+let lastMood = "", quipUntil = 0;
+function mascot(D) {
+  const P = D.portfolio, box = $("#tomorn");
+  const stale = D.last_write ? D.now - D.last_write : Infinity, alive = stale < 5 * 60000;
+  let mood = "idle", say, small = "";
+  if (!alive) { mood = "sleep"; say = "งือ… บอทหลับอยู่ โตมรก็หลับด้วย 😴"; small = "ปลุกได้ที่ Terminal: cd ~/Desktop/Tomorn/projects/crypto-bot/bot แล้วพิมพ์ caffeinate -i python3 runner.py"; }
+  else if (P && P.halted) { mood = "sad"; say = "โตมรขอพักก่อนนะ 🛑"; small = "พอร์ตลดถึงเพดาน kill switch แล้ว ตรวจดูก่อนค่อยปลดล็อก"; }
+  else if (P && P.pos) {
+    const u = P.upnl || 0;
+    if (u >= 0) { mood = "happy"; say = `ไม้นี้บวกอยู่ ${sign(u)} USDT เย้! ✨`; small = `${P.pos.name} · มี SL คุมไว้แล้ว`; }
+    else { mood = "sad"; say = `ติดลบ ${sign(u)} USDT ใจเย็น ๆ น้า 🥺`; small = `มี SL คุมอยู่ที่ ${fmt(P.pos.sl, 0)} เสียไม่เกินที่วางแผนไว้แน่นอน`; }
+  } else if (P && P.pend) { mood = "happy"; say = "เจอสัญญาณแล้ว! รอเข้าไม้อยู่ 👀"; small = P.pend.name; }
+  else if (P && P.trades === 0) { say = "โตมรเฝ้ากราฟอยู่น้า~"; small = "ยังไม่มีสัญญาณ กลยุทธ์ 4H ต้องใจเย็นหน่อย"; }
+  else if (P) {
+    const last = P.history[P.history.length - 1];
+    say = last && last.pnl > 0 ? "ไม้ล่าสุดได้กำไร เก่งมาก ✨" : "ไม้ล่าสุดโดน SL ไม่เป็นไร ไปต่อ 💪";
+    small = `เทรดจำลองแล้ว ${P.trades}/${D.gate.need.min_paper_trades} ไม้`;
+  } else { say = "สวัสดีจ้า โตมรเอง 🐼"; small = "ยังไม่มีพอร์ตจำลอง รันบอทก่อนน้า"; }
+  box.classList.toggle("sleeping", mood === "sleep");
+  box.classList.toggle("sad", mood === "sad");
+  box.classList.toggle("happy", mood === "happy");
+  const key = mood + (P && P.pos ? P.pos.time : "") + (P ? P.trades : "");
+  if (Date.now() < quipUntil) return;  // เพิ่งจิ้มน้อง → ให้คำพูดตลก ๆ ค้างไว้ก่อน
+  const b = $("#bubble"), html = `${say}${small ? `<small>${small}</small>` : ""}`;
+  if (key !== lastMood) {             // เปลี่ยนเรื่องพูด → เด้งบับเบิลใหม่
+    lastMood = key; b.innerHTML = html;
+    b.style.animation = "none"; b.offsetHeight; b.style.animation = "";
+    showBubble();
+  } else if (b.innerHTML !== html) b.innerHTML = html;   // แค่ตัวเลขเปลี่ยน → อัปเดตเงียบ ๆ ไม่เด้ง
+}
+// มือถือจอเล็ก: บับเบิลหายเองหลัง 8 วินาที จะได้ไม่บังเนื้อหา (จิ้มน้องโตมรเพื่อให้พูดอีก)
+let bubbleTimer;
+function showBubble() {
+  const box = $("#tomorn"); box.classList.remove("hide-bubble"); clearTimeout(bubbleTimer);
+  if (window.innerWidth < 600) bubbleTimer = setTimeout(() => box.classList.add("hide-bubble"), 8000);
+}
+const QUIPS = ["จิ้มทำไมน้า 🙈", "หวัดดีจ้า~ โตมรเอง 👋", "พุงนุ่มนิ่มไหม จิ้มได้นะ 🍡", "อย่าลืมพักสายตาด้วยน้า 👀", "เทรดจำลองก่อน เงินจริงทีหลัง ✌️", "ใจเย็น ๆ ตลาดไม่หนีไปไหน 🐢", "ขอไผ่สักกิ่งได้ไหม 🎋"];
+$("#panda").addEventListener("click", () => {
+  const box = $("#tomorn"); box.classList.remove("wave"); void box.offsetWidth; box.classList.add("wave");
+  const b = $("#bubble"); showBubble();
+  b.innerHTML = QUIPS[Math.floor(Math.random() * QUIPS.length)] + `<small>จิ้มอีกทีก็ได้นะ</small>`;
+  b.style.animation = "none"; b.offsetHeight; b.style.animation = "";
+  lastMood = ""; quipUntil = Date.now() + 6000;   // 6 วินาทีแล้วกลับมาพูดเรื่องบอท
+});
+$("#bubble").addEventListener("click", () => $("#tomorn").classList.add("hide-bubble"));
+
+async function load() {
+  if (VIEW === "ft") return typeof loadFT === "function" ? loadFT() : null;
+  try {
+    const r = await fetch("/api/data", { cache: "no-store" }); DATA = await r.json();
+    if (DATA.error) throw new Error(DATA.error);
+    render();
+  } catch (e) {
+    $("#status-chip").innerHTML = `<span class="dot off"></span><span>ติดต่อเว็บไม่ได้ — dashboard.py ยังเปิดอยู่ไหม?</span>`;
+  }
+}
+// วาดกราฟใหม่เมื่อกรอบเปลี่ยนความกว้าง (หมุนจอ / ย่อหน้าต่าง / หน้าเว็บจัดวางเสร็จ)
+const widths = new WeakMap();
+const ro = new ResizeObserver(entries => entries.forEach(en => {
+  const w = Math.round(en.contentRect.width); if (!DATA || VIEW !== "spot" || !w || widths.get(en.target) === w) return;
+  widths.set(en.target, w); en.target.id === "price-chart" ? drawPrice() : drawEquity();
+}));
+ro.observe($("#price-chart")); ro.observe($("#equity-chart"));
+["price-chart", "equity-chart"].forEach(id => {
+  const b = document.getElementById(id);
+  b.addEventListener("pointerenter", () => hovering[id] = true);
+  b.addEventListener("pointerleave", () => { hovering[id] = false; });
+  b.addEventListener("touchend", () => setTimeout(() => hovering[id] = false, 1500));
+});
+setTimeout(() => setView(VIEW), 0); setInterval(load, 5000);
+</script>
+<script src="/ft_view.js"></script>
+</body>
+</html>
